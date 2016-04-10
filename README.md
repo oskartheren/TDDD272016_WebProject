@@ -5,7 +5,8 @@ I have done a little bit of web programming before, but not so much with framewo
 - It will be displayed in a highscore if you are logged in and qualified for the toplist.
 - You shall be able to create an account where your best scores will be displayed.
 - You shall be able to find other users and see their profiles.
-# Technological specification
+
+#Technological specification
 ### I will use:
 - MEAN.IO
   * Angular, because I want to learn the popular framework
