@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "postinstall": "export HOME=/var/lib/openshift/[instance-id]/app-root/runtime/repo; ./node_modules/bower/bin/bower install"
+    "postinstall": "export HOME=/var/lib/openshift/[instance-id]/app-root/runtime/repo; ./node_modules/bower/bin/bower install",
     "start": "node server",
     "mocha": "node tools/test/run-mocha.js",
     "karma": "node node_modules/karma/bin/karma start karma.conf.js",
