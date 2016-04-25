@@ -10,13 +10,14 @@ var Logger = require('bower-logger');
 var resolverFactory = require('../../lib/core/resolverFactory');
 var resolvers = require('../../lib/core/resolvers');
 var defaultConfig = require('../../lib/config');
+var helpers = require('../helpers');
 
 describe('resolverFactory', function () {
     var tempSource;
     var logger = new Logger();
-    var registryClient = new RegistryClient(mout.object.fillIn({
-        cache: defaultConfig._registry
-    }, defaultConfig));
+    var registryClient = new RegistryClient(defaultConfig({
+        cache: defaultConfig()._registry
+    }));
 
     afterEach(function (next) {
         logger.removeAllListeners();
@@ -30,11 +31,11 @@ describe('resolverFactory', function () {
     });
 
     after(function (next) {
-        rimraf('dejavu', next);
+        rimraf('pure', next);
     });
 
     function callFactory(decEndpoint, config) {
-        return resolverFactory(decEndpoint, config || defaultConfig, logger, registryClient);
+        return resolverFactory(decEndpoint, defaultConfig(config), logger, registryClient);
     }
 
     it('should recognize git remote endpoints correctly', function (next) {
@@ -339,7 +340,9 @@ describe('resolverFactory', function () {
         .done();
     });
 
-    it('should recognize svn remote endpoints correctly', function (next) {
+    if (!helpers.hasSvn())
+        describe.skip('should recognize svn remote endpoints correctly', function() {});
+    else it('should recognize svn remote endpoints correctly', function (next) {
         var promise = Q.resolve();
         var endpoints;
 
@@ -524,31 +527,31 @@ describe('resolverFactory', function () {
     });
 
     it('should recognize registry endpoints correctly', function (next) {
-        // Create a 'dejavu' file at the root to prevent regressions of #666
-        fs.writeFileSync('dejavu', 'foo');
+        // Create a 'pure' file at the root to prevent regressions of #666
+        fs.writeFileSync('pure', 'foo');
 
-        callFactory({ source: 'dejavu' })
+        callFactory({ source: 'pure' })
         .then(function (resolver) {
             expect(resolver).to.be.a(resolvers.GitRemote);
-            expect(resolver.getSource()).to.equal('git://github.com/IndigoUnited/dejavu.git');
+            expect(resolver.getSource()).to.equal('git://github.com/yui/pure-release.git');
             expect(resolver.getTarget()).to.equal('*');
         })
         .then(function () {
             // Test with name
-            return callFactory({ source: 'dejavu', name: 'foo' })
+            return callFactory({ source: 'pure', name: 'foo' })
             .then(function (resolver) {
                 expect(resolver).to.be.a(resolvers.GitRemote);
-                expect(resolver.getSource()).to.equal('git://github.com/IndigoUnited/dejavu.git');
+                expect(resolver.getSource()).to.equal('git://github.com/yui/pure-release.git');
                 expect(resolver.getName()).to.equal('foo');
                 expect(resolver.getTarget()).to.equal('*');
             });
         })
         .then(function () {
             // Test with target
-            return callFactory({ source: 'dejavu', target: '~2.0.0' })
+            return callFactory({ source: 'pure', target: '~0.4.0' })
             .then(function (resolver) {
                 expect(resolver).to.be.a(resolvers.GitRemote);
-                expect(resolver.getTarget()).to.equal('~2.0.0');
+                expect(resolver.getTarget()).to.equal('~0.4.0');
 
                 next();
             });
@@ -571,7 +574,7 @@ describe('resolverFactory', function () {
     });
 
     it('should set registry to true on the decomposed endpoint if fetched from the registry', function (next) {
-        var decEndpoint = { source: 'dejavu' };
+        var decEndpoint = { source: 'pure' };
 
         callFactory(decEndpoint)
         .then(function () {
@@ -584,13 +587,11 @@ describe('resolverFactory', function () {
     it('should use the configured shorthand resolver', function (next) {
         callFactory({ source: 'bower/bower' })
         .then(function (resolver) {
-            var config;
+            var config = {
+                shorthandResolver: 'git://bower.io/{{owner}}/{{package}}/{{shorthand}}'
+            };
 
             expect(resolver.getSource()).to.equal('git://github.com/bower/bower.git');
-
-            config = mout.object.fillIn({
-                shorthandResolver: 'git://bower.io/{{owner}}/{{package}}/{{shorthand}}'
-            }, defaultConfig);
 
             return callFactory({ source: 'IndigoUnited/promptly' }, config);
         })
@@ -616,7 +617,7 @@ describe('resolverFactory', function () {
 
 
     it('should error out if there\'s no suitable resolver for a given source', function (next) {
-        resolverFactory({ source: 'some-package-that-will-never-exist' }, defaultConfig, logger)
+        resolverFactory({ source: 'some-package-that-will-never-exist' }, defaultConfig(), logger)
         .then(function () {
             throw new Error('Should have failed');
         }, function (err) {
