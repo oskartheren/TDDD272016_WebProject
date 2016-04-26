@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 require('./models/Posts');
 require('./models/Comments');
+require('./models/Scores');
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/news');
 
 var routes = require('./routes/index');
