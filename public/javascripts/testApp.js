@@ -23,9 +23,11 @@ app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
   $scope.scores = scores.scores;
 
 	$scope.addScore = function(){
-	  if(!$scope.points || $scope.points === '' || !$scope.userName || $scope.userName === '') { return; }
+		var tmppoints = parseInt($scope.points);
+	  if(!tmppoints || !$scope.userName || $scope.userName === '')
+			return;
 	  scores.create({
-	    points: $scope.points,
+	    points: tmppoints,
 	    userName: $scope.userName,
 	  });
 	  $scope.points = '';
