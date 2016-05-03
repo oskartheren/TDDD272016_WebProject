@@ -19,7 +19,7 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	$urlRouterProvider.otherwise('high_score');
 }]);
 
-app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
+app.controller('HighScoreCtrl',  ['$scope', 'scores', '$location', function($scope, scores, $location){
   $scope.scores = scores.scores;
 
 	$scope.addScore = function(){
@@ -32,6 +32,7 @@ app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
 	  });
 	  $scope.points = '';
 	  $scope.userName = '';
+		scores.getAll();
 	};
 }]);
 

@@ -19,7 +19,7 @@ I have done a little bit of web programming before, but not so much with framewo
 -  * Angular, because I want to learn the popular framework
 -  * NodeJS/ExpressJS, I want to try fullstack
 -  * MongoDB, I want to try a NoSQL DB	 
-- Openshift
+- Heroku
 
 # Below is the README from MEAN.IO
 
