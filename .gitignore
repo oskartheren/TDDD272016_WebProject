@@ -75,3 +75,6 @@ modules/views/
 # vim Files
 # --------------------
 *.swp
+
+#webpack
+/bundle

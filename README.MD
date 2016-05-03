@@ -4,27 +4,6 @@
 
 # [![MEAN Logo](http://mean.io/system/assets/img/logos/meanlogo.png)](http://mean.io/) MEAN Stack
 
-I have done a little bit of web programming before, but not so much with frameworks and for this project i just want to try to learn some of the biggest ones.
-# Functional specification
-### I am going to do:
-- A game web site that will have a simple game that you can get a score in.
-- It will be displayed in a highscore if you are logged in and qualified for the toplist.
-- You shall be able to create an account where your best scores will be displayed.
-- You shall be able to find other users and see their profiles.
-
-#Technological specification
-### I will use:
-- MEAN.IO
-  * Angular, because I want to learn the popular framework
-  * NodeJS/ExpressJS, I want to try fullstack 
-  * MongoDB, I want to try a NoSQL DB
-- Openshift
-
-
-# Below is the README from MEAN.IO
-
-
-
 MEAN is a framework for an easy starting point with [MongoDB](https://www.mongodb.org/), [Node.js](http://www.nodejs.org/), [Express](http://expressjs.com/), and [AngularJS](https://angularjs.org/) based applications. It is designed to give you a quick and organized way to start developing MEAN based web apps with useful modules like Mongoose and Passport pre-bundled and configured. We mainly try to take care of the connection points between existing popular frameworks and solve common integration problems.
 
 ## Prerequisite Technologies
