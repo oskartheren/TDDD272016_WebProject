@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var mongoose = require('mongoose');
+require('./models/Users');
 require('./models/Scores');
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/news');
 

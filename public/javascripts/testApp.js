@@ -7,7 +7,17 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	  controller: 'HighScoreCtrl',
 	  resolve: {
 	    scorePromise: ['scores', function(scores){
-	      return scores.getAll();
+	      return scores.getHighScore();
+	    }]
+		}
+	});
+	$stateProvider.state('user', {
+	  url: '/user',
+	  templateUrl: '/partials/user.html',
+	  controller: 'UserCtrl',
+	  resolve: {
+	    scorePromise: ['users', function(users){
+	      return users.getAll();
 	    }]
 		}
 	});
@@ -19,20 +29,40 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	$urlRouterProvider.otherwise('high_score');
 }]);
 
-app.controller('HighScoreCtrl',  ['$scope', 'scores', '$location', function($scope, scores, $location){
+app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
   $scope.scores = scores.scores;
+	// $scope.users = users.users[$stateParams.id];
+	//
+	// $scope.createScore = function(){
+	// 	var tmppoints = parseInt($scope.points);
+	//   if(!tmppoints || !$scope.userName || $scope.userName === '')
+	// 		return;
+	//   users.createScore(user._id, {
+	//     points: tmppoints
+	//   }).success(function(score) {
+	// 		$scope.user.scores.push(score);
+	// 	});
+	//   $scope.points = '';
+	//   $scope.userName = '';
+	// 	scores.getHighScore();
+	// };
+}]);
 
-	$scope.addScore = function(){
-		var tmppoints = parseInt($scope.points);
-	  if(!tmppoints || !$scope.userName || $scope.userName === '')
+
+app.controller('UserCtrl',  ['$scope', 'users', function($scope, users){
+  $scope.users = users.users;
+
+	$scope.addUser = function(){
+	  if(!$scope.userName || $scope.userName === '' ||
+			 !$scope.password || $scope.password === '')
 			return;
-	  scores.create({
-	    points: tmppoints,
+	  users.create({
 	    userName: $scope.userName,
+			password: $scope.password
 	  });
-	  $scope.points = '';
 	  $scope.userName = '';
-		scores.getAll();
+	  $scope.password = '';
+		users.getAll();
 	};
 }]);
 
@@ -41,24 +71,48 @@ app.controller('GameCtrl',  ['$scope', function($scope){
 	$scope.info = "Coolt Spel!"
 }]);
 
-app.factory('scores', ['$http', function($http){
+app.factory('scores', ['$http', function($http) {
 	var obj = {
 		scores: []
 	};
 
-	obj.getAll = function() {
+	obj.getHighScore = function() {
 		return $http.get('/scores').success(function(data){
 			angular.copy(data, obj.scores);
 			for (var i = 0; i < obj.scores.length; i++)
-				obj.scores[i].place = i+1;
+			obj.scores[i].place = i+1;
+		});
+	};
+	return obj;
+}]);
+
+app.factory('users', ['$http', function($http){
+	var obj = {
+		users: []
+	};
+
+	obj.getAll = function() {
+		return $http.get('/users').success(function(data){
+			angular.copy(data, obj.users);
 		});
 	};
 
-	obj.create = function(score) {
-		return $http.post('/scores', score).success(function(data){
-	    obj.scores.push(data);
+	obj.create = function(user) {
+		return $http.post('/users', user).success(function(data){
+	    obj.users.push(data);
 	  });
 	};
 
+	obj.getScore = function(user) {
+	  return $http.get('/users/' + user._id).then(function(res){
+	    return res.data;
+	  });
+	};
+
+
+	obj.createScore = function(user, score) {
+		return $http.post('/users/' + user._id + '/scores', score);
+	};
+
 	return obj;
-}])
+}]);
