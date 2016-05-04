@@ -1,9 +1,19 @@
 var mongoose = require('mongoose');
 
 var UserSchema = new mongoose.Schema({
-  userName: String,
-  password: String,
-  scores: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Score' }]
+  userName: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  scores: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Score'
+  }]
 });
 
 mongoose.model('User', UserSchema);

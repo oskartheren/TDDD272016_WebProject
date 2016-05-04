@@ -31,21 +31,6 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 
 app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
   $scope.scores = scores.scores;
-	// $scope.users = users.users[$stateParams.id];
-	//
-	// $scope.createScore = function(){
-	// 	var tmppoints = parseInt($scope.points);
-	//   if(!tmppoints || !$scope.userName || $scope.userName === '')
-	// 		return;
-	//   users.createScore(user._id, {
-	//     points: tmppoints
-	//   }).success(function(score) {
-	// 		$scope.user.scores.push(score);
-	// 	});
-	//   $scope.points = '';
-	//   $scope.userName = '';
-	// 	scores.getHighScore();
-	// };
 }]);
 
 
@@ -64,6 +49,21 @@ app.controller('UserCtrl',  ['$scope', 'users', function($scope, users){
 	  $scope.password = '';
 		users.getAll();
 	};
+
+	$scope.createScore = function(){
+		var tmppoints = parseInt($scope.points);
+		if(!tmppoints || !$scope.userName || $scope.userName === '')
+			return;
+		users.createScore({
+			points: tmppoints,
+			userName: $scope.userName
+		}).success(function(score) {
+			$scope.user.scores.push(score);
+		});
+		$scope.points = '';
+		$scope.userName = '';
+	};
+
 }]);
 
 
@@ -104,14 +104,14 @@ app.factory('users', ['$http', function($http){
 	};
 
 	obj.getScore = function(user) {
-	  return $http.get('/users/' + user._id).then(function(res){
+	  return $http.get('/users/' + user).then(function(res){
 	    return res.data;
 	  });
 	};
 
 
-	obj.createScore = function(user, score) {
-		return $http.post('/users/' + user._id + '/scores', score);
+	obj.createScore = function(score) {
+		return $http.post('/users/' + score.userName + '/score', score);
 	};
 
 	return obj;

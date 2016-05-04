@@ -1,8 +1,15 @@
 var mongoose = require('mongoose');
 
 var ScoreSchema = new mongoose.Schema({
-  points: Number,
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+  points: {
+    type: Number,
+    required: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
 });
 
 mongoose.model('Score', ScoreSchema);

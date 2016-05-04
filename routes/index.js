@@ -12,12 +12,19 @@ var mongoose = require('mongoose');
 var User = mongoose.model('User');
 var Score = mongoose.model('Score');
 
-
 router.get('/users', function(req, res, next) {
   User.find(function(err, users){
     if(err){ return next(err); }
 
     res.json(users);
+  });
+});
+
+router.get('/users/:user', function(req, res, next) {
+  req.user.populate('scores', function(err, user) {
+    if (err) { return next(err); }
+
+    res.json(user);
   });
 });
 
@@ -31,9 +38,8 @@ router.post('/users', function(req, res, next) {
   });
 });
 
-
-router.param('user', function(req, res, next, id) {
-  var query = User.findById(id);
+router.param('user', function(req, res, next, userName) {
+  var query = User.find({'userName' : userName});
 
   query.exec(function (err, user){
     if (err) { return next(err); }
@@ -44,28 +50,44 @@ router.param('user', function(req, res, next, id) {
   });
 });
 
-
-router.get('/scores', function(req, res, next) {
-  Score.find({}).sort('-points').exec(function(err, scores){
-    if(err){ return next(err); }
-
-    res.json(scores);
-  });
+router.get('/users/:user', function(req, res) {
+  res.json(req.user);
 });
 
-router.post('/scores', function(req, res, next) {
+router.post('/users/:user/score', function(req, res, next) {
   var score = new Score(req.body);
+  console.log('score1:', score);
+  console.log('req.user[0].userName', req.user[0].userName);
+  score.userName = req.user[0].userName;
+  console.log('score.userName', score.points);
+  console.log('score2:', score);
   score.save(function(err, score){
     if(err){ return next(err); }
+    console.log('req.user:', req.user);
 
-    res.json(score);
+    req.user.push(score);
+    req.user.save(function(err, post) {
+      if(err){ return next(err); }
+
+      res.json(score);
+    });
   });
 });
 
-router.get('/users/:user', function(req, res, next) {
-  req.user.populate('scores', function(err, user) {
-    if (err)
-      return next(err);
-    res.json(user);
-  });
-});
+//
+// router.get('/scores', function(req, res, next) {
+//   Score.find({}).sort('-points').exec(function(err, scores){
+//     if(err){ return next(err); }
+//
+//     res.json(scores);
+//   });
+// });
+//
+// router.post('/scores', function(req, res, next) {
+//   var score = new Score(req.body);
+//   score.save(function(err, score){
+//     if(err){ return next(err); }
+//
+//     res.json(score);
+//   });
+// });
