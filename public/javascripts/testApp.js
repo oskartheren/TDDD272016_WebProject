@@ -11,15 +11,20 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	    }]
 		}
 	});
-	$stateProvider.state('user', {
-	  url: '/user',
-	  templateUrl: '/partials/user.html',
-	  controller: 'UserCtrl',
+	$stateProvider.state('users', {
+	  url: '/users',
+	  templateUrl: '/partials/users.html',
+	  controller: 'UsersCtrl',
 	  resolve: {
 	    scorePromise: ['users', function(users){
 	      return users.getAll();
 	    }]
 		}
+	});
+	$stateProvider.state('user', {
+	  url: '/user/{userName}',
+	  templateUrl: '/partials/user.html',
+	  controller: 'UserCtrl'
 	});
 	$stateProvider.state('game', {
 	  url: '/game',
@@ -33,8 +38,18 @@ app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
   $scope.scores = scores.scores;
 }]);
 
+app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope, $stateParams, users){
+	$scope.user = users.currentUser;
 
-app.controller('UserCtrl',  ['$scope', 'users', function($scope, users){
+	$scope.getUser = function(){
+		if (!$stateParams.userName || $stateParams.userName =='')
+			return;
+		users.getUser($stateParams.userName).success(function(){$scope.user = users.currentUser});
+		console.log('users.currentUser', users.currentUser);
+	}
+}]);
+
+app.controller('UsersCtrl',  ['$scope', 'users', function($scope, users){
   $scope.users = users.users;
 
 	$scope.addUser = function(){
@@ -47,7 +62,7 @@ app.controller('UserCtrl',  ['$scope', 'users', function($scope, users){
 	  });
 	  $scope.userName = '';
 	  $scope.password = '';
-		users.getAll();
+		// users.getAll();
 	};
 
 	$scope.createScore = function(){
@@ -88,7 +103,8 @@ app.factory('scores', ['$http', function($http) {
 
 app.factory('users', ['$http', function($http){
 	var obj = {
-		users: []
+		users: [],
+		currentUser: null
 	};
 
 	obj.getAll = function() {
@@ -97,17 +113,23 @@ app.factory('users', ['$http', function($http){
 		});
 	};
 
+	obj.getUser = function(userName, user) {
+	  return $http.get('/users/' + userName).success(function(data){
+			obj.currentUser = data;
+	  });
+	}
+
 	obj.create = function(user) {
 		return $http.post('/users', user).success(function(data){
 	    obj.users.push(data);
 	  });
 	};
 
-	obj.getScore = function(user) {
-	  return $http.get('/users/' + user).then(function(res){
-	    return res.data;
-	  });
-	};
+	// obj.getScore = function(user) {
+	//   return $http.get('/users/' + user + '/score/').then(function(res){
+	//     return res.data;
+	//   });
+	// };
 
 
 	obj.createScore = function(score) {
