@@ -16,7 +16,9 @@
   Password: <span style="color:red">{{user.password}}</span>
   </br>
   Best scores:
-  <div style="color:red" ng-repeat="scores in user.scores | orderBy : '-points'">
-    {{scores.points}}
+  <div ng-repeat="scores in user.scores">
+    <div ng-if="scores.place<6">
+      {{scores.place}}: <span  style="color:red">{{scores.points}}</span>
+    </div>
   </div>
 </span>

@@ -45,7 +45,6 @@ app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope,
 		if (!$stateParams.userName || $stateParams.userName =='')
 			return;
 		users.getUser($stateParams.userName).success(function(){$scope.user = users.currentUser});
-		console.log('users.currentUser', users.currentUser);
 	}
 }]);
 
@@ -95,7 +94,7 @@ app.factory('scores', ['$http', function($http) {
 		return $http.get('/scores').success(function(data){
 			angular.copy(data, obj.scores);
 			for (var i = 0; i < obj.scores.length; i++)
-			obj.scores[i].place = i+1;
+				obj.scores[i].place = i+1;
 		});
 	};
 	return obj;
@@ -116,6 +115,8 @@ app.factory('users', ['$http', function($http){
 	obj.getUser = function(userName, user) {
 	  return $http.get('/users/' + userName).success(function(data){
 			obj.currentUser = data;
+			for (var i = 0; i < obj.currentUser.scores.length; i++)
+				obj.currentUser.scores[i].place = i+1;
 	  });
 	}
 

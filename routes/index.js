@@ -42,16 +42,12 @@ router.param('user', function(req, res, next, userName) {
 });
 
 router.get('/users/:user', function(req, res, next) {
-  req.user.populate('scores', function(err, user) {
+  req.user.populate({path: 'scores', options: { sort: { 'points': -1 } }},  function(err, user) {
     if (err) { return next(err); }
 
     res.json(req.user);
   });
 });
-
-// router.get('/users/:user', function(req, res) {
-//   res.json(req.user);
-// });
 
 router.post('/users/:user/score', function(req, res, next) {
   var score = new Score(req.body);
@@ -76,12 +72,3 @@ router.get('/scores', function(req, res, next) {
     res.json(scores);
   });
 });
-
-// router.post('/scores', function(req, res, next) {
-//   var score = new Score(req.body);
-//   score.save(function(err, score){
-//     if(err){ return next(err); }
-//
-//     res.json(score);
-//   });
-// });
