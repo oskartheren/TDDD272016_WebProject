@@ -1,9 +1,24 @@
 <div class="page-header row">
-    <div class="col-md-8">
-      <h2>Game</h2>
-    </div>
-    <div class="col-md-4">
-      <a style="float:right;"href="#/high_score"><h2>See high score</h2></a>
-    </div>
+  <div class="col-md-6">
+    <h2>Game</h2>
+  </div>
+  <div class="col-md-6">
+    <nav class="navbar navbar-default pull-right" ng-controller="NavCtrl">
+      <ul class="nav navbar-nav">
+        <li><a href="#/high_score">High Score</a></li>
+        <li><a href="#/game">Game</a></li>
+        <li><a href="#/users">Users</a></li>
+        <li ng-show="isLoggedIn()"><a href="#/user/{{currentUser()}}" style="font-weight: bold;">{{ currentUser() }}</a></li>
+        <li ng-show="isLoggedIn()"><a href="" ng-click="logOut()">Log Out</a></li>
+        <li ng-hide="isLoggedIn()"><a href="/#/login">Log In</a></li>
+      </ul>
+    </nav>
+  </div>
 </div>
 {{info}}
+
+<form ng-submit="createScore()" ng-controller="UsersCtrl">
+  <input type="text" ng-model="userName" placeholder="User Name"></input>
+  <input type="number" ng-model="points" placeholder="Points"></input>
+  <button type="submit">Add Score</button>
+</form>

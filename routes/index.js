@@ -1,5 +1,10 @@
 var express = require('express');
+var passport = require('passport');
+var jwt = require('express-jwt');
+var mongoose = require('mongoose');
 var router = express.Router();
+var User = mongoose.model('User');
+var auth = jwt({secret: 'SECRET', userProperty: 'payload'});
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -20,7 +25,7 @@ router.get('/users', function(req, res, next) {
   });
 });
 
-
+// Is replaced by register
 router.post('/users', function(req, res, next) {
   var user = new User(req.body);
 
@@ -44,14 +49,15 @@ router.param('user', function(req, res, next, userName) {
 router.get('/users/:user', function(req, res, next) {
   req.user.populate({path: 'scores', options: { sort: { 'points': -1 } }},  function(err, user) {
     if (err) { return next(err); }
-
+    req.user.hash = null;
+    req.user.salt = null;
     res.json(req.user);
   });
 });
 
-router.post('/users/:user/score', function(req, res, next) {
+router.post('/users/:user/score', auth, function(req, res, next) {
   var score = new Score(req.body);
-  score.user = req.user;
+  score.user = req.payload.userName; // Get the username from the jwt
 
   score.save(function(err, score){
     if(err){ return next(err); }
@@ -71,4 +77,34 @@ router.get('/scores', function(req, res, next) {
 
     res.json(scores);
   });
+});
+
+router.post('/register', function(req, res, next){
+  if(!req.body.userName || !req.body.password){
+    return res.status(400).json({message: 'Please fill out all fields'});
+  }
+  var user = new User();
+  user.userName = req.body.userName;
+  user.setPassword(req.body.password)
+
+  user.save(function (err){
+    if(err){ return next(err); }
+
+    return res.json({token: user.generateJWT()})
+  });
+});
+
+router.post('/login', function(req, res, next){
+  if(!req.body.userName || !req.body.password){
+    return res.status(400).json({message: 'Please fill out all fields'});
+  }
+  req.body.username = req.body.userName; // passport has this value hardcoded
+  passport.authenticate('local', function(err, user, info){
+    if(err){ return next(err); }
+    if(user){
+      return res.json({token: user.generateJWT()});
+    } else {
+      return res.status(401).json(info);
+    }
+  })(req, res, next);
 });

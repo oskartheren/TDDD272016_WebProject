@@ -1,19 +1,23 @@
 <div class="page-header row" data-ng-init="getUser()">
-  <div class="col-md-8">
+  <div class="col-md-6">
     <h2>User page of {{user.userName}}</h2>
   </div>
-  <div class="col-md-4">
-    <h2 style="float:right;">
-      <a href="#/high_score">See high score</a>
-      </br>
-      <a href="#/game">Go to the game</a>
-    </h2>
+  <div class="col-md-6">
+    <nav class="navbar navbar-default pull-right" ng-controller="NavCtrl">
+      <ul class="nav navbar-nav">
+        <li><a href="#/high_score">High Score</a></li>
+        <li><a href="#/game">Game</a></li>
+        <li><a href="#/users">Users</a></li>
+        <li ng-show="isLoggedIn()"><a href="#/user/{{currentUser()}}" style="font-weight: bold;">{{ currentUser() }}</a></li>
+        <li ng-show="isLoggedIn()"><a href="" ng-click="logOut()">Log Out</a></li>
+        <li ng-hide="isLoggedIn()"><a href="/#/login">Log In</a></li>
+      </ul>
+    </nav>
   </div>
 </div>
+
 <span style="font-size:20px">
   Username: <span style="color:red">{{user.userName}}</span>
-  </br>
-  Password: <span style="color:red">{{user.password}}</span>
   </br>
   Best scores:
   <div ng-repeat="scores in user.scores">

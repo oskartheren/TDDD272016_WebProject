@@ -35,7 +35,6 @@ UserSchema.methods.validPassword = function(password) {
 };
 
 UserSchema.methods.generateJWT = function() {
-
   // set expiration to 60 days
   var today = new Date();
   var exp = new Date(today);
@@ -43,7 +42,7 @@ UserSchema.methods.generateJWT = function() {
 
   return jwt.sign({
     _id: this._id,
-    username: this.username,
+    userName: this.userName,
     exp: parseInt(exp.getTime() / 1000),
   }, 'SECRET');
 };
