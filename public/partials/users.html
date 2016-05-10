@@ -16,6 +16,26 @@
   </div>
 </div>
 
-<div ng-repeat="user in users">
-  <a href="#/user/{{user.userName}}">Name: {{user.userName}}, Scores: {{user.scores}}.</a>
+<form ng-submit="findUser()" style="margin-top:30px;">
+  <h3>Find a user</h3>
+
+  <div class="form-group">
+    <input type="text" class="form-control" placeholder="Username" ng-model="userName"></input>
+  </div>
+  <button type="submit" class="btn btn-primary">Add Score</button>
+</form>
+
+<div ng-if="user.userName" style="font-size:20px">
+  User
+  <a href="/#/{{ user.userName }}">
+    {{ user.userName }}
+  </a>
+  found!
+</div>
+<div ng-if="user.userName" style="font-size:20px">
+  No user by that name
+</div>
+
+<div ng-repeat="user in users" style="font-size:20px">
+  Name: <a href="#/user/{{user.userName}}">{{user.userName}}</a>
 </div>

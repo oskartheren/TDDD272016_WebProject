@@ -60,6 +60,13 @@ app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope,
 
 app.controller('UsersCtrl',  ['$scope', 'users', function($scope, users){
   $scope.users = users.users;
+
+	$scope.findUser = function() {
+		if(!$scope.userName || $scope.userName === '')
+			return;
+		users.getUser($scope.userName).success(function(){$scope.user = users.currentPageUser});
+		$scope.userName = '';
+	}
 }]);
 
 
