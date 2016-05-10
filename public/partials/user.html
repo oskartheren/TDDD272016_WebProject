@@ -20,9 +20,13 @@
   Username: <span style="color:red">{{user.userName}}</span>
   </br>
   Best scores:
-  <div ng-repeat="scores in user.scores">
-    <div ng-if="scores.place<6">
-      {{scores.place}}: <span  style="color:red">{{scores.points}}</span>
+  <ul class="list-group">
+    <div ng-repeat="scores in user.scores" style="font-size:16px">
+      <div ng-if="scores.place<6">
+        <li class="list-group-item">
+          {{scores.place}}: <span style="color:red">{{scores.points}}</span>
+        </li>
+      </div>
     </div>
-  </div>
+  </ul>
 </span>

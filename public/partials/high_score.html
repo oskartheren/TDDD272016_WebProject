@@ -16,6 +16,10 @@
   </div>
 </div>
 
-<div ng-repeat="score in scores">
-  {{score.place}} {{score.userName}} scored {{score.points}} points!
-</div>
+<ul class="list-group">
+  <div ng-repeat="score in scores" style="font-size:16px">
+    <a href="#/user/{{score.user.userName}}"  class="list-group-item">
+      {{score.place}}: <span style="color: red">{{score.user.userName}}</span> scored <b>{{score.points}}</b> points!
+    </a>
+  </div>
+</ul>

@@ -49,50 +49,48 @@ app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
 }]);
 
 app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope, $stateParams, users){
-	$scope.user = users.currentUser;
+	$scope.user = users.currentPageUser;
 
 	$scope.getUser = function(){
 		if (!$stateParams.userName || $stateParams.userName =='')
 			return;
-		users.getUser($stateParams.userName).success(function(){$scope.user = users.currentUser});
+		users.getUser($stateParams.userName).success(function(){$scope.user = users.currentPageUser});
 	}
 }]);
 
 app.controller('UsersCtrl',  ['$scope', 'users', function($scope, users){
   $scope.users = users.users;
-
-	$scope.addUser = function(){
-	  if(!$scope.userName || $scope.userName === '' ||
-			 !$scope.password || $scope.password === '')
-			return;
-	  users.create({
-	    userName: $scope.userName,
-			password: $scope.password
-	  });
-	  $scope.userName = '';
-	  $scope.password = '';
-		// users.getAll();
-	};
-
-	$scope.createScore = function(){
-		var tmppoints = parseInt($scope.points);
-		if(!tmppoints || !$scope.userName || $scope.userName === '')
-			return;
-		users.createScore({
-			points: tmppoints,
-			userName: $scope.userName
-		}).success(function(score) {
-			$scope.user.scores.push(score);
-		});
-		$scope.points = '';
-		$scope.userName = '';
-	};
-
 }]);
 
 
-app.controller('GameCtrl', ['$scope', function($scope){
-	$scope.info = "Coolt Spel!"
+app.controller('GameCtrl', ['$scope', 'users', 'auth', function($scope, users, auth){
+  $scope.users = users.users;
+  $scope.currentUser = auth.currentUser;
+  $scope.isLoggedIn = auth.isLoggedIn;
+
+	$scope.createScoreOther = function(){
+		var tmppoints = parseInt($scope.pointsOther);
+		if(!tmppoints || !$scope.userName || $scope.userName === '')
+			return;
+
+		users.createScore({
+			points: tmppoints,
+			userName: $scope.userName
+		});
+		$scope.userName = '';
+		$scope.pointsOther = '';
+	};
+	$scope.createScore = function(){
+		var tmppoints = parseInt($scope.points);
+		if(!tmppoints || !$scope.isLoggedIn)
+			return;
+
+		users.createScore({
+			points: tmppoints,
+			userName: $scope.currentUser()
+		});
+		$scope.points = '';
+	};
 }]);
 
 app.controller('AuthCtrl', ['$scope', '$state', 'auth', function($scope, $state, auth){
@@ -132,8 +130,9 @@ app.factory('scores', ['$http', function($http) {
 	obj.getHighScore = function() {
 		return $http.get('/scores').success(function(data){
 			angular.copy(data, obj.scores);
-			for (var i = 0; i < obj.scores.length; i++)
+			for (var i = 0; i < obj.scores.length; i++){
 				obj.scores[i].place = i+1;
+			}
 		});
 	};
 	return obj;
@@ -142,7 +141,7 @@ app.factory('scores', ['$http', function($http) {
 app.factory('users', ['$http', function($http){
 	var obj = {
 		users: [],
-		currentUser: null
+		currentUserPage: null
 	};
 
 	obj.getAll = function() {
@@ -153,9 +152,9 @@ app.factory('users', ['$http', function($http){
 
 	obj.getUser = function(userName, user) {
 	  return $http.get('/users/' + userName).success(function(data){
-			obj.currentUser = data;
-			for (var i = 0; i < obj.currentUser.scores.length; i++)
-				obj.currentUser.scores[i].place = i+1;
+			obj.currentPageUser = data;
+			for (var i = 0; i < obj.currentPageUser.scores.length; i++)
+				obj.currentPageUser.scores[i].place = i+1;
 	  });
 	};
 
@@ -164,13 +163,6 @@ app.factory('users', ['$http', function($http){
 	    obj.users.push(data);
 	  });
 	};
-
-	// obj.getScore = function(user) {
-	//   return $http.get('/users/' + user + '/score/').then(function(res){
-	//     return res.data;
-	//   });
-	// };
-
 
 	obj.createScore = function(score) {
 		return $http.post('/users/' + score.userName + '/score', score);

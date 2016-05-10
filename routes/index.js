@@ -42,6 +42,7 @@ router.param('user', function(req, res, next, userName) {
     if (err) { return next(err); }
     if (!user) { return next(new Error('can\'t find user')); }
     req.user = user[0];
+
     return next();
   });
 });
@@ -49,15 +50,15 @@ router.param('user', function(req, res, next, userName) {
 router.get('/users/:user', function(req, res, next) {
   req.user.populate({path: 'scores', options: { sort: { 'points': -1 } }},  function(err, user) {
     if (err) { return next(err); }
-    req.user.hash = null;
-    req.user.salt = null;
+    req.user.hash = null; // Dont send this info
+    req.user.salt = null; // Dont send this info
     res.json(req.user);
   });
 });
 
-router.post('/users/:user/score', auth, function(req, res, next) {
+router.post('/users/:user/score', function(req, res, next) {
   var score = new Score(req.body);
-  score.user = req.payload.userName; // Get the username from the jwt
+  score.user = req.user; // Get the username from the jwt
 
   score.save(function(err, score){
     if(err){ return next(err); }
@@ -72,9 +73,9 @@ router.post('/users/:user/score', auth, function(req, res, next) {
 
 
 router.get('/scores', function(req, res, next) {
-  Score.find({}).sort('-points').exec(function(err, scores){
+  Score.find({}).sort('-points').populate('user').exec(function(err, scores){
     if(err){ return next(err); }
-
+    
     res.json(scores);
   });
 });
