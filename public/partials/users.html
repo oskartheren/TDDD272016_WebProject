@@ -25,6 +25,11 @@
   <button type="submit" class="btn btn-primary">Add Score</button>
 </form>
 
+
+<div ng-if="userFound==null" style="font-size:20px">
+  </br>
+  </br>
+</div>
 <div ng-if="userFound==true" style="font-size:20px">
   User
   <a href="/#/user/{{ searchedUserName }}">
@@ -40,6 +45,12 @@
   </br>
 </div>
 
-<div ng-repeat="user in users" style="font-size:20px">
-  Name: <a href="#/user/{{user.userName}}">{{user.userName}}</a>
-</div>
+
+<ul class="list-group">
+  <h3>All users</h3>
+  <div  ng-repeat="user in users | orderBy:'userName'" style="font-size:20px">
+    <a href="#/user/{{user.userName}}" class="list-group-item">
+      {{user.userName}}
+    </a>
+  </div>
+</ul>
