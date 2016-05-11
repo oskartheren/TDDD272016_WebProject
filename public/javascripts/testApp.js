@@ -1,14 +1,12 @@
 var app = angular.module('testSite', ['ui.router']);
 
-app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $urlRouterProvider){
+app.config(function($stateProvider, $urlRouterProvider){
 	$stateProvider.state('high_score', {
 	  url: '/high_score',
 	  templateUrl: '/partials/high_score.html',
-	  controller: 'HighScoreCtrl',
+	  controller: function($scope, scores){ $scope.scores = scores.scores; },
 	  resolve: {
-	    scorePromise: ['scores', function(scores){
-	      return scores.getHighScore();
-	    }]
+	    scorePromise: function(scores){ return scores.getHighScore(); }
 		}
 	});
 	$stateProvider.state('users', {
@@ -16,9 +14,7 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	  templateUrl: '/partials/users.html',
 	  controller: 'UsersCtrl',
 	  resolve: {
-	    scorePromise: ['users', function(users){
-	      return users.getAll();
-	    }]
+	    userPromise: function(users){ return users.getAll(); }
 		}
 	});
 	$stateProvider.state('user', {
@@ -35,20 +31,12 @@ app.config(['$stateProvider', '$urlRouterProvider', function($stateProvider, $ur
 	  url: '/login',
 	  templateUrl: 'partials/login.html',
 	  controller: 'AuthCtrl',
-	  onEnter: ['$state', 'auth', function($state, auth){
-	    if(auth.isLoggedIn()){
-	      $state.go('high_score');
-	    }
-	  }]
+	  onEnter: function($state, auth){ if(auth.isLoggedIn()) $state.go('high_score'); }
 	});
 	$urlRouterProvider.otherwise('login');
-}]);
+});
 
-app.controller('HighScoreCtrl',  ['$scope', 'scores', function($scope, scores){
-  $scope.scores = scores.scores;
-}]);
-
-app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope, $stateParams, users){
+app.controller('UserCtrl', function($scope, $stateParams, users){
 	$scope.user = users.currentPageUser;
 
 	$scope.getUser = function(){
@@ -56,9 +44,9 @@ app.controller('UserCtrl',  ['$scope', '$stateParams', 'users', function($scope,
 			return;
 		users.getUser($stateParams.userName).success(function(){$scope.user = users.currentPageUser});
 	}
-}]);
+});
 
-app.controller('UsersCtrl',  ['$scope', 'users', function($scope, users){
+app.controller('UsersCtrl', function($scope, users){
   $scope.users = users.users;
 
 	$scope.findUser = function() {
@@ -72,10 +60,10 @@ app.controller('UsersCtrl',  ['$scope', 'users', function($scope, users){
 		});
 		$scope.userName = '';
 	}
-}]);
+});
 
 
-app.controller('GameCtrl', ['$scope', 'users', 'auth', function($scope, users, auth){
+app.controller('GameCtrl', function($scope, users, auth){
   $scope.users = users.users;
   $scope.currentUser = auth.currentUser;
   $scope.isLoggedIn = auth.isLoggedIn;
@@ -103,9 +91,11 @@ app.controller('GameCtrl', ['$scope', 'users', 'auth', function($scope, users, a
 		});
 		$scope.points = '';
 	};
-}]);
 
-app.controller('AuthCtrl', ['$scope', '$state', 'auth', function($scope, $state, auth){
+
+});
+
+app.controller('AuthCtrl', function($scope, $state, auth){
 	$scope.registerUser = {};
   $scope.loginUser = {};
 
@@ -124,17 +114,17 @@ app.controller('AuthCtrl', ['$scope', '$state', 'auth', function($scope, $state,
       $state.go('high_score');
     });
   };
-}]);
+});
 
-app.controller('NavCtrl', ['$scope', 'auth', function($scope, auth){
+app.controller('NavCtrl', function($scope, auth){
   $scope.isLoggedIn = auth.isLoggedIn;
   $scope.currentUser = auth.currentUser;
   $scope.logOut = auth.logOut;
-}]);
+});
 
 
 
-app.factory('scores', ['$http', function($http) {
+app.factory('scores', function($http) {
 	var obj = {
 		scores: []
 	};
@@ -148,9 +138,9 @@ app.factory('scores', ['$http', function($http) {
 		});
 	};
 	return obj;
-}]);
+});
 
-app.factory('users', ['$http', function($http){
+app.factory('users', function($http){
 	var obj = {
 		users: [],
 		currentUserPage: null
@@ -181,10 +171,10 @@ app.factory('users', ['$http', function($http){
 	};
 
 	return obj;
-}]);
+});
 
 
-app.factory('auth', ['$http', '$window', function($http, $window){
+app.factory('auth', function($http, $window){
   var auth = {};
 
 	auth.saveToken = function (token){
@@ -231,4 +221,4 @@ app.factory('auth', ['$http', '$window', function($http, $window){
 	};
 
 	return auth;
-}])
+});
