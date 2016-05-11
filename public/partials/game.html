@@ -15,19 +15,20 @@
     </nav>
   </div>
 </div>
+<div data-ng-init="createEnemies()"></div>
 
 <div class="row">
   <div class="col-lg-6 col-centered">
-    <canvas id="game" class="canvas" width="400" height="300">Sorry, your browser doesn't support the &lt;canvas&gt; element.</canvas>
+    <canvas id="canvas" class="canvas" width="400" height="300" ng-click="shipShoot()" ng-mousemove="shipMove($event)">Sorry, your browser doesn't support the &lt;canvas&gt; element.</canvas>
   </div>
 </div>
 
 
 <div ng-show="isLoggedIn()">
-  <form ng-submit="createScore()" style="margin-top:30px;">
+  <form ng-submit="createScoreSelf()" style="margin-top:30px;">
     <h3>Add a score to yourself</h3>
     <div class="form-group">
-      <input type="number" class="form-control" placeholder="Points" ng-model="points"></input>
+      <input type="number" class="form-control" placeholder="Points" ng-model="pointsSelf"></input>
     </div>
     <button type="submit" class="btn btn-primary">Add Score</button>
   </form>
@@ -37,7 +38,7 @@
   <h3>Add a score to some one else</h3>
 
   <div class="form-group">
-    <input type="text" class="form-control" placeholder="Username" ng-model="userName"></input>
+    <input type="text" class="form-control" placeholder="Username" ng-model="userNameOther"></input>
   </div>
   <div class="form-group">
     <input type="number" class="form-control" placeholder="Points" ng-model="pointsOther"></input>

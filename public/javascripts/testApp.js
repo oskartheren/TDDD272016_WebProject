@@ -49,7 +49,7 @@ app.controller('UserCtrl', function($scope, $stateParams, users){
 app.controller('UsersCtrl', function($scope, users){
   $scope.users = users.users;
 
-	$scope.findUser = function() {
+	$scope.getUser = function() {
 		if(!$scope.userName || $scope.userName === '')
 			return;
 		$scope.userFound = false;
@@ -67,32 +67,92 @@ app.controller('GameCtrl', function($scope, users, auth){
   $scope.users = users.users;
   $scope.currentUser = auth.currentUser;
   $scope.isLoggedIn = auth.isLoggedIn;
+	var canvas = document.getElementById('canvas');
+	var ctx = canvas.getContext('2d');
 
-	$scope.createScoreOther = function(){
-		var tmppoints = parseInt($scope.pointsOther);
-		if(!tmppoints || !$scope.userName || $scope.userName === '')
-			return;
+	var game = {
+		ship:{
+			width:'30',
+			height:'10',
+			x: canvas.width/2-15,
+			y: canvas.height-20,
+		},
+		shots: [],
+		enemies: []
+	};
 
-		users.createScore({
-			points: tmppoints,
-			userName: $scope.userName
-		});
-		$scope.userName = '';
+	$scope.createScoreOther = function(){ // For debugging
+		createScore($scope.pointsOther, $scope.userNameOther);
+		$scope.userNameOther = '';
 		$scope.pointsOther = '';
 	};
-	$scope.createScore = function(){
-		var tmppoints = parseInt($scope.points);
-		if(!tmppoints || !$scope.isLoggedIn)
-			return;
-
-		users.createScore({
-			points: tmppoints,
-			userName: $scope.currentUser()
-		});
-		$scope.points = '';
+	$scope.createScoreSelf = function(){
+		if(!$scope.isLoggedIn) return;
+		createScore($scope.pointsSelf, $scope.currentUser());
+		$scope.pointsSelf = '';
+	};
+	createScore = function(points, userName){
+		var points = parseInt(points);
+		if(!points || !userName || userName === '') return;
+		users.createScore({points, userName});
 	};
 
+	$scope.createEnemies = function() {
+		var columns = 11;
+		var rows = 5;
+		for (i=0; i<columns; i++){
+			for (j=0; j<rows; j++){
+				game.enemies.push({x:canvas.width*i/columns, y:canvas.height*j/rows});
+			}
+		}
+	}
 
+	$scope.shipMove = function(event) {
+		game.ship.x = event.offsetX-game.ship.width;
+	};
+	$scope.shipShoot = function() {
+		game.shots.push({x:game.ship.x+game.ship.width/2, y:game.ship.y-5, direction:'up'});
+	};
+
+	draw = function(x, y, width, height, fill, stroke) {
+		ctx.beginPath();
+		ctx.rect(x, y, width, height);
+		if (fill!=null) {
+			ctx.fillStyle = fill;
+			ctx.fill();
+		}
+		if (stroke!=null) {
+	    ctx.lineWidth = 1;
+	    ctx.strokeStyle = stroke;
+			ctx.stroke();
+		}
+	}
+
+	moveShots = function(shots){
+		for (i=0; i<shots.length; i++){
+			if (shots[i].direction == 'up')
+				shots[i].y-=4;
+			else
+				shots[i].y+=4;
+
+			if (shots[i].y < 0 || shots[i].y > canvas.height)
+				shots.splice(i, 1);
+		}
+	}
+	setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
+	function onTimerTick() {
+		moveShots(game.shots);
+
+		// Draw
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		draw(game.ship.x, game.ship.y, game.ship.width, game.ship.height, '#aaddff', '#666666');
+		for (i=0; i<game.shots.length; i++)
+			draw(game.shots[i].x, game.shots[i].y, 2, 5, '#aaddff', '#666666');
+		for (i=0; i<game.enemies.length; i++)
+			draw(game.enemies[i].x, game.enemies[i].y, 10, 7, '#aaddff', '#666666');
+	};
+
+	$scope.$on("$destroy", function() {game = '';}); // removes all data when entering another page
 });
 
 app.controller('AuthCtrl', function($scope, $state, auth){
