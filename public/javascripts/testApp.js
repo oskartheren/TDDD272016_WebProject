@@ -30,7 +30,7 @@ app.config(function($stateProvider, $urlRouterProvider){
 	$stateProvider.state('login', {
 	  url: '/login',
 	  templateUrl: 'partials/login.html',
-	  controller: 'NavCtrl',
+	  controller: 'AuthCtrl',
 	  onEnter: function($state, auth){ if(auth.isLoggedIn()) $state.go('high_score'); }
 	});
 	$urlRouterProvider.otherwise('login');

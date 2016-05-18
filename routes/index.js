@@ -25,17 +25,6 @@ router.get('/users', function(req, res, next) {
   });
 });
 
-// Is replaced by register
-router.post('/users', function(req, res, next) {
-  var user = new User(req.body);
-
-  user.save(function(err, user){
-    if(err){ return next(err); }
-
-    res.json(user);
-  });
-});
-
 router.param('user', function(req, res, next, userName) {
   var query = User.find({'userName' : userName});
   query.exec(function (err, user){
@@ -75,7 +64,7 @@ router.post('/users/:user/score', function(req, res, next) {
 router.get('/scores', function(req, res, next) {
   Score.find({}).sort('-points').populate('user').exec(function(err, scores){
     if(err){ return next(err); }
-    
+
     res.json(scores);
   });
 });

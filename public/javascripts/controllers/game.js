@@ -5,23 +5,37 @@ app.controller('GameCtrl', function($scope, users, auth){
   $scope.points = 0;
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
+  var keyDown = [];
+  var shotCooldown = 0;
 
 	var game = {
 		ship: {
 			pos: {x: canvas.width/2-15, y: canvas.height-20},
-			size: {width: 30,	height: 10}
+			size: {width: canvas.width/15,	height: canvas.height/35}
 		},
 		shots: {
 			shot: [], // contains: pos, dir, speed
-			size: {width: 2, height: 5}
+			size: {width: canvas.width/500, height: canvas.height/60}
 		},
 		enemies: {
 			pos: [], // contains: pos of all enemies
-			size: {width: 10, height: 7},
-			speed: 1,
+			size: {width: canvas.width/22, height: canvas.height/19},
+			speed: 0.4,
 			dir: 'right'
 		}
 	};
+
+  $scope.submitScore = function() {
+    if(!$scope.isLoggedIn || !points) return;
+		var points = parseInt(points);
+    console.log('Score', $scope.points);
+    console.log('User', $auth.currentUser);
+		// users.createScore({points, auth.currentUser});
+    $scope.points = '';
+    $scope.$apply();
+    createEnemies();
+    onTimerTickId = setInterval(onTimerTick, 33);
+  };
 
 	$scope.createScore = function(points, userName){
     if(!$scope.isLoggedIn || !points) return;
@@ -31,8 +45,9 @@ app.controller('GameCtrl', function($scope, users, auth){
 	};
 
 	$scope.createEnemies = function() {
+    $scope.gameOver = false;
     game.enemies.dir = 'right';
-    game.enemies.speed = 1;
+    game.enemies.speed = 0.4;
 		var columns = 11;
 		var rows = 5;
 		for (i=0; i<columns; i++){
@@ -43,9 +58,6 @@ app.controller('GameCtrl', function($scope, users, auth){
 		}
 	};
 
-	// $scope.shipMove = function(event) {
-	// 	game.ship.pos.x = event.offsetX-game.ship.size.width;
-	// };
 	shipShoot = function() {
 		game.shots.shot.push({
 			pos: {
@@ -53,25 +65,50 @@ app.controller('GameCtrl', function($scope, users, auth){
 				y:game.ship.pos.y-game.ship.size.height/2
 			},
 			dir:'up',
-			speed: 5
+			speed: 10
 		});
 	};
-  $scope.keyboardHandler = function(event) {
-    console.log(event.code);
-    switch(event.code) {
-    case 'KeyA':
-      game.ship.pos.x -= 5;
-      break;
-    case 'KeyD':
-      game.ship.pos.x += 5;
-      break;
-    case 'KeyJ':
-      shipShoot();
-    default:
+  enemyShoot = function(enemyPos) {
+		game.shots.shot.push({
+			pos: {
+				x:enemyPos.x+game.enemies.size.width/2,
+				y:enemyPos.y-game.enemies.size.height/2
+			},
+			dir:'down',
+			speed: 10
+		});
+	};
+
+  $scope.keydownHandler = function(event) {
+    if (!keyDown.includes(event.code))
+      keyDown.push(event.code);
+  };
+  $scope.keyupHandler = function(event) {
+    var index = keyDown.indexOf(event.code);
+    keyDown.splice(index, 1);
+  };
+  handleKeyDown = function() {
+    shotCooldown--;
+    for (i=0;i<keyDown.length;i++) {
+    switch(keyDown[i]) {
+      case 'KeyA':
+        if (game.ship.pos.x>0)
+          game.ship.pos.x -= 5;
         break;
+      case 'KeyD':
+      if (game.ship.pos.x<canvas.width-game.ship.size.width)
+        game.ship.pos.x += 5;
+        break;
+      case 'Space':
+        if (shotCooldown < 0) {
+          shotCooldown = 30;
+          shipShoot();
+        }
+      default:
+          break;
+      }
     }
   };
-
 	draw = function(pos, size, fill, stroke) {
 		ctx.beginPath();
 		ctx.rect(pos.x, pos.y, size.width, size.height);
@@ -80,7 +117,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 			ctx.fill();
 		}
 		if (stroke!=null) {
-	    ctx.lineWidth = 1;
+	    ctx.lineWidth = 2;
 	    ctx.strokeStyle = stroke;
 			ctx.stroke();
 		}
@@ -105,15 +142,15 @@ app.controller('GameCtrl', function($scope, users, auth){
 			else game.enemies.dir = 'right'
 
 		  for (i=0; i<game.enemies.pos.length; i++){
-        game.enemies.pos[i].y+=game.enemies.size.height*2;
-        if (game.enemies.pos[i].y > canvas.height-game.ship.size.height*4) alert('gameover');
+        game.enemies.pos[i].y+=game.enemies.size.height;
+        if (game.enemies.pos[i].y > canvas.height-game.ship.size.height*3) gameOver();
       }
 		}
 
 		for (i=0; i<game.enemies.pos.length; i++){
 			if (game.enemies.dir == 'right') {
 				game.enemies.pos[i].x+=game.enemies.speed;
-				if (game.enemies.pos[i].x > canvas.width)	edgeEnemy = true;
+				if (game.enemies.pos[i].x > canvas.width-game.enemies.size.width)	edgeEnemy = true;
 			}
 			else {
 				game.enemies.pos[i].x-=game.enemies.speed;
@@ -121,6 +158,11 @@ app.controller('GameCtrl', function($scope, users, auth){
 			}
 		}
 	};
+
+  enemiesShoot = function() {
+    if(Math.random()<0.03)
+      enemyShoot(game.enemies.pos[Math.floor(Math.random()*game.enemies.pos.length)]);
+  };
 
   enemiesCollision = function() {
     for (i=0; i<game.shots.shot.length; i++){
@@ -137,6 +179,7 @@ app.controller('GameCtrl', function($scope, users, auth){
           )
         ){
           $scope.points += 10
+          $scope.$apply();
           game.shots.shot.splice(i, 1);
           game.enemies.pos.splice(j, 1);
           enemiesHandleAmount();
@@ -146,30 +189,58 @@ app.controller('GameCtrl', function($scope, users, auth){
     }
   };
 
+  shipCollision = function() {
+    for (i=0; i<game.shots.shot.length; i++){
+      if (
+        (
+          game.shots.shot[i].dir == 'down'
+        ) && (
+          game.ship.pos.x < game.shots.shot[i].pos.x + game.shots.size.width/2 &&
+          game.shots.shot[i].pos.x  + game.shots.size.width/2 < game.ship.pos.x + game.ship.size.width
+        ) && (
+          game.ship.pos.y < game.shots.shot[i].pos.y + game.shots.size.height &&
+          game.shots.shot[i].pos.y < game.ship.pos.y + game.shots.size.height + game.ship.size.height
+        )
+      ){
+        game.shots.shot.splice(i, 1);
+        gameOver();
+      }
+    }
+  };
+
   enemiesHandleAmount = function() {
     if (game.enemies.pos.length == 0) $scope.createEnemies();
-    else if (game.enemies.pos.length < 2) game.enemies.speed = 10;
-    else if (game.enemies.pos.length < 4) game.enemies.speed = 7;
-    else if (game.enemies.pos.length < 15) game.enemies.speed = 4;
-    else if (game.enemies.pos.length < 25) game.enemies.speed = 3;
-    else if (game.enemies.pos.length < 40) game.enemies.speed = 2;
+    else if (game.enemies.pos.length < 2) game.enemies.speed = 6;
+    else if (game.enemies.pos.length < 4) game.enemies.speed = 4;
+    else if (game.enemies.pos.length < 15) game.enemies.speed = 1.5;
+    else if (game.enemies.pos.length < 25) game.enemies.speed = 1;
+    else if (game.enemies.pos.length < 40) game.enemies.speed = 0.7;
+  };
+
+  gameOver = function() {
+    clearInterval(onTimerTickId);
+    $scope.gameOver = true;
+    $scope.$apply();
   }
 
-
-	setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
+	var onTimerTickId = setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
 	function onTimerTick() {
-		moveShots();
+    handleKeyDown();
 		enemiesMove();
+    enemiesShoot();
+    moveShots();
+    shipCollision();
     enemiesCollision();
+
 
 		// Draw
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		draw(game.ship.pos, game.ship.size, '#aaddff', '#666666');
+		draw(game.ship.pos, game.ship.size, '#33FF00', '#999999');
 		for (i=0; i<game.shots.shot.length; i++)
-			draw(game.shots.shot[i].pos, game.shots.size, '#aaddff', '#666666');
+			draw(game.shots.shot[i].pos, game.shots.size, '#FFFFFF', '#FFFFFF');
 		for (i=0; i<game.enemies.pos.length; i++)
-			draw(game.enemies.pos[i], game.enemies.size, '#aaddff', '#666666');
+			draw(game.enemies.pos[i], game.enemies.size, '#FFFFFF', '#999999');
 	};
 
-	$scope.$on("$destroy", function() {game = '';}); // removes all data when entering another page
+	$scope.$on("$destroy", function() {clearInterval(onTimerTickId);});
 });
