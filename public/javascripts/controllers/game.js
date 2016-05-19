@@ -9,7 +9,8 @@ app.controller('GameCtrl', function($scope, users, auth){
 	var ctx = canvas.getContext('2d');
   var keyDown = [];
   var shotCooldown = 0;
-  var onTimerTickId
+  var onTimerTickId;
+  var paused = false;
 
   var game;
 	var gameStartParams = {
@@ -46,14 +47,13 @@ app.controller('GameCtrl', function($scope, users, auth){
     $scope.createEnemies();
     onTimerTickId = setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
   }
-var tmp = true;
+
   $scope.endGame = function(apply) {
     ctx.font = "100px Comic Sans MS";
     ctx.fillStyle = "red";
     ctx.textAlign = "center";
     ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
     clearInterval(onTimerTickId);
-    tmp = false;
     $scope.gameOver = true;
     if (apply) $scope.$apply();
   }
@@ -91,7 +91,14 @@ var tmp = true;
 	};
 
   $scope.keydownHandler = function(event) {
-    if (!keyDown.includes(event.code))
+    if (event.code == 'KeyP') {
+      if (paused)
+        onTimerTickId = setInterval(onTimerTick, 33);
+      else
+        clearInterval(onTimerTickId);
+      paused = !paused;
+    }
+    else if (!keyDown.includes(event.code))
       keyDown.push(event.code);
   };
   $scope.keyupHandler = function(event) {
