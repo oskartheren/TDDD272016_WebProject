@@ -26,23 +26,11 @@ app.controller('GameCtrl', function($scope, users, auth){
 	};
 
   $scope.submitScore = function() {
-    if(!$scope.isLoggedIn || !points) return;
-		var points = parseInt(points);
-    console.log('Score', $scope.points);
-    console.log('User', $auth.currentUser);
-		// users.createScore({points, auth.currentUser});
-    $scope.points = '';
-    $scope.$apply();
-    createEnemies();
-    onTimerTickId = setInterval(onTimerTick, 33);
+    if(!$scope.isLoggedIn() || !$scope.points) return;
+		var points = parseInt($scope.points);
+		users.createScore({points: points, userName: $scope.currentUser()});
+    $scope.points = 0;
   };
-
-	$scope.createScore = function(points, userName){
-    if(!$scope.isLoggedIn || !points) return;
-		var points = parseInt(points);
-		users.createScore({points, userName});
-    $scope.points = '';
-	};
 
 	$scope.createEnemies = function() {
     $scope.gameOver = false;
