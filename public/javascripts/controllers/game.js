@@ -3,12 +3,16 @@ app.controller('GameCtrl', function($scope, users, auth){
   $scope.currentUser = auth.currentUser;
   $scope.isLoggedIn = auth.isLoggedIn;
   $scope.points = 0;
+  $scope.gameOver = true;
+  $scope.gameStarted = false;
 	var canvas = document.getElementById('canvas');
 	var ctx = canvas.getContext('2d');
   var keyDown = [];
   var shotCooldown = 0;
+  var onTimerTickId
 
-	var game = {
+  var game;
+	var gameStartParams = {
 		ship: {
 			pos: {x: canvas.width/2-15, y: canvas.height-20},
 			size: {width: canvas.width/15,	height: canvas.height/35}
@@ -20,7 +24,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 		enemies: {
 			pos: [], // contains: pos of all enemies
 			size: {width: canvas.width/22, height: canvas.height/19},
-			speed: 0.4,
+			speed: 0.7,
 			dir: 'right'
 		}
 	};
@@ -30,12 +34,31 @@ app.controller('GameCtrl', function($scope, users, auth){
 		var points = parseInt($scope.points);
 		users.createScore({points: points, userName: $scope.currentUser()});
     $scope.points = 0;
+    $scope.gameStarted = false;
   };
 
-	$scope.createEnemies = function() {
+  $scope.startGame = function() {
+    $scope.gameStarted = true;
     $scope.gameOver = false;
-    game.enemies.dir = 'right';
-    game.enemies.speed = 0.4;
+    $scope.points = 0;
+    game = angular.copy(gameStartParams);
+    game.shots.shot = [];
+    $scope.createEnemies();
+    onTimerTickId = setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
+  }
+var tmp = true;
+  $scope.endGame = function(apply) {
+    ctx.font = "100px Comic Sans MS";
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
+    clearInterval(onTimerTickId);
+    tmp = false;
+    $scope.gameOver = true;
+    if (apply) $scope.$apply();
+  }
+
+	$scope.createEnemies = function() {
 		var columns = 11;
 		var rows = 5;
 		for (i=0; i<columns; i++){
@@ -131,7 +154,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 
 		  for (i=0; i<game.enemies.pos.length; i++){
         game.enemies.pos[i].y+=game.enemies.size.height;
-        if (game.enemies.pos[i].y > canvas.height-game.ship.size.height*3) gameOver();
+        if (game.enemies.pos[i].y > canvas.height-game.ship.size.height*3) {$scope.endGame(true); clearInterval(onTimerTickId);}
       }
 		}
 
@@ -191,36 +214,21 @@ app.controller('GameCtrl', function($scope, users, auth){
         )
       ){
         game.shots.shot.splice(i, 1);
-        gameOver();
+        $scope.endGame(true); clearInterval(onTimerTickId);
       }
     }
   };
 
   enemiesHandleAmount = function() {
-    if (game.enemies.pos.length == 0) $scope.createEnemies();
-    else if (game.enemies.pos.length < 2) game.enemies.speed = 6;
-    else if (game.enemies.pos.length < 4) game.enemies.speed = 4;
-    else if (game.enemies.pos.length < 15) game.enemies.speed = 1.5;
-    else if (game.enemies.pos.length < 25) game.enemies.speed = 1;
-    else if (game.enemies.pos.length < 40) game.enemies.speed = 0.7;
+    if (game.enemies.pos.length == 0) $scope.startGame();
+    else if (game.enemies.pos.length < 2) game.enemies.speed = 7;
+    else if (game.enemies.pos.length < 4) game.enemies.speed = 5;
+    else if (game.enemies.pos.length < 15) game.enemies.speed = 2;
+    else if (game.enemies.pos.length < 25) game.enemies.speed = 1.4;
+    else if (game.enemies.pos.length < 40) game.enemies.speed = 1;
   };
 
-  gameOver = function() {
-    clearInterval(onTimerTickId);
-    $scope.gameOver = true;
-    $scope.$apply();
-  }
-
-	var onTimerTickId = setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
 	function onTimerTick() {
-    handleKeyDown();
-		enemiesMove();
-    enemiesShoot();
-    moveShots();
-    shipCollision();
-    enemiesCollision();
-
-
 		// Draw
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		draw(game.ship.pos, game.ship.size, '#33FF00', '#999999');
@@ -228,6 +236,14 @@ app.controller('GameCtrl', function($scope, users, auth){
 			draw(game.shots.shot[i].pos, game.shots.size, '#FFFFFF', '#FFFFFF');
 		for (i=0; i<game.enemies.pos.length; i++)
 			draw(game.enemies.pos[i], game.enemies.size, '#FFFFFF', '#999999');
+
+    // Logics after draw so Game Over can be writen on screen
+    handleKeyDown();
+  	enemiesMove();
+    enemiesShoot();
+    moveShots();
+    shipCollision();
+    enemiesCollision();
 	};
 
 	$scope.$on("$destroy", function() {clearInterval(onTimerTickId);});
