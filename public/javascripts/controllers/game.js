@@ -11,11 +11,12 @@ app.controller('GameCtrl', function($scope, users, auth){
   var shotCooldown = 0;
   var onTimerTickId;
   var paused = false;
+  var shootChance;
 
   var game;
 	var gameStartParams = {
 		ship: {
-			pos: {x: canvas.width/2-15, y: canvas.height-20},
+			pos: {x: canvas.width*14/30, y: canvas.height*33/35},
 			size: {width: canvas.width/15,	height: canvas.height/35}
 		},
 		shots: {
@@ -25,7 +26,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 		enemies: {
 			pos: [], // contains: pos of all enemies
 			size: {width: canvas.width/22, height: canvas.height/19},
-			speed: 0.7,
+			speed: 1,
 			dir: 'right'
 		}
 	};
@@ -44,6 +45,7 @@ app.controller('GameCtrl', function($scope, users, auth){
     $scope.points = 0;
     game = angular.copy(gameStartParams);
     game.shots.shot = [];
+    shootChance = 0.03;
     $scope.createEnemies();
     onTimerTickId = setInterval(onTimerTick, 33); // 33 milliseconds = ~ 30 frames per sec
   }
@@ -111,11 +113,11 @@ app.controller('GameCtrl', function($scope, users, auth){
     switch(keyDown[i]) {
       case 'KeyA':
         if (game.ship.pos.x>0)
-          game.ship.pos.x -= 5;
+          game.ship.pos.x -= 7;
         break;
       case 'KeyD':
       if (game.ship.pos.x<canvas.width-game.ship.size.width)
-        game.ship.pos.x += 5;
+        game.ship.pos.x += 7;
         break;
       case 'Space':
         if (shotCooldown < 0) {
@@ -135,7 +137,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 			ctx.fill();
 		}
 		if (stroke!=null) {
-	    ctx.lineWidth = 2;
+	    ctx.lineWidth = 3;
 	    ctx.strokeStyle = stroke;
 			ctx.stroke();
 		}
@@ -178,7 +180,7 @@ app.controller('GameCtrl', function($scope, users, auth){
 	};
 
   enemiesShoot = function() {
-    if(Math.random()<0.03)
+    if(Math.random()<shootChance)
       enemyShoot(game.enemies.pos[Math.floor(Math.random()*game.enemies.pos.length)]);
   };
 
@@ -227,12 +229,17 @@ app.controller('GameCtrl', function($scope, users, auth){
   };
 
   enemiesHandleAmount = function() {
-    if (game.enemies.pos.length == 0) $scope.startGame();
-    else if (game.enemies.pos.length < 2) game.enemies.speed = 7;
-    else if (game.enemies.pos.length < 4) game.enemies.speed = 5;
-    else if (game.enemies.pos.length < 15) game.enemies.speed = 2;
-    else if (game.enemies.pos.length < 25) game.enemies.speed = 1.4;
-    else if (game.enemies.pos.length < 40) game.enemies.speed = 1;
+    if (game.enemies.pos.length == 0) {
+      game = angular.copy(gameStartParams);
+      game.shots.shot = [];
+      $scope.createEnemies();
+      shootChance += 0.03;
+    }
+    else if (game.enemies.pos.length < 2) game.enemies.speed = 10;
+    else if (game.enemies.pos.length < 4) game.enemies.speed = 7;
+    else if (game.enemies.pos.length < 15) game.enemies.speed = 2.5;
+    else if (game.enemies.pos.length < 25) game.enemies.speed = 1.8;
+    else if (game.enemies.pos.length < 40) game.enemies.speed = 1.3;
   };
 
 	function onTimerTick() {
