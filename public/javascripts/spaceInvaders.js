@@ -1,4 +1,4 @@
-var app = angular.module('testSite', ['ui.router']);
+var app = angular.module('spaceInvaders', ['ui.router']);
 
 app.config(function($stateProvider, $urlRouterProvider){
 	$stateProvider.state('high_score', {
