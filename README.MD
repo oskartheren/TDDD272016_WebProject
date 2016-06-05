@@ -4,6 +4,11 @@
 
 # [![MEAN Logo](http://mean.io/system/assets/img/logos/meanlogo.png)](http://mean.io/) MEAN Stack
 
+# Screen Cast
+http://youtu.be/1J84AS4rIuU?hd=1
+
+# Specification
+
 I have done a little bit of web programming before, but not so much with frameworks and for this project i just want to try to learn some of the biggest ones.
 
 # Functional specification
